@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
+  const type = searchParams.get("type");
   const next = searchParams.get("next") ?? "/dashboard";
 
   if (!code) {
@@ -18,12 +19,23 @@ export async function GET(request: Request) {
     
     if (error) {
       logger.error("Auth code exchange failed", error, { code: code.substring(0, 10) });
+      
+      // If this was an email verification, redirect to verify-email page with error
+      if (type === "signup" || type === "email") {
+        return NextResponse.redirect(`${origin}/auth/verify-email?verified=false`);
+      }
+      
       return NextResponse.redirect(
         `${origin}/?error=verification_failed&message=${encodeURIComponent(error.message)}`
       );
     }
 
-    logger.info("Auth callback successful");
+    logger.info("Auth callback successful", { type });
+
+    // If this was an email verification, redirect to verify-email page with success
+    if (type === "signup" || type === "email") {
+      return NextResponse.redirect(`${origin}/auth/verify-email?verified=true`);
+    }
 
     const forwardedHost = request.headers.get("x-forwarded-host");
     const isLocalEnv = process.env.NODE_ENV === "development";

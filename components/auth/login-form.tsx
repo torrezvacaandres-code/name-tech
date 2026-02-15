@@ -15,6 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -22,6 +23,7 @@ import Link from "next/link";
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  rememberMe: z.boolean().optional(),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -36,13 +38,14 @@ export function LoginForm() {
     defaultValues: {
       email: "",
       password: "",
+      rememberMe: false,
     },
   });
 
   async function onSubmit(values: LoginFormValues) {
     setLoading(true);
     try {
-      const { error } = await signIn(values.email, values.password);
+      const { error } = await signIn(values.email, values.password, values.rememberMe ?? false);
 
       if (error) {
         if (error.message.includes("Email not confirmed")) {
@@ -103,10 +106,28 @@ export function LoginForm() {
             </FormItem>
           )}
         />
-        <div className="text-sm text-right">
+        <div className="flex items-center justify-between">
+          <FormField
+            control={form.control}
+            name="rememberMe"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-2 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value ?? false}
+                    onCheckedChange={field.onChange}
+                    disabled={loading}
+                  />
+                </FormControl>
+                <FormLabel className="text-sm font-normal cursor-pointer">
+                  Remember me
+                </FormLabel>
+              </FormItem>
+            )}
+          />
           <Link
             href="/auth/forgot-password"
-            className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+            className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
           >
             Forgot password?
           </Link>

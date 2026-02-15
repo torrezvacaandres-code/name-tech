@@ -16,6 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { AvatarUpload } from "@/components/avatar-upload";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -23,7 +24,6 @@ import Link from "next/link";
 const profileSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
   phone: z.string().optional(),
-  avatarUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -38,7 +38,6 @@ export default function ProfilePage() {
     defaultValues: {
       fullName: "",
       phone: "",
-      avatarUrl: "",
     },
   });
 
@@ -48,10 +47,19 @@ export default function ProfilePage() {
       form.reset({
         fullName: profile.full_name || "",
         phone: profile.phone || "",
-        avatarUrl: profile.avatar_url || "",
       });
     }
   }, [profile, form]);
+
+  const handleAvatarUpload = async (url: string) => {
+    const { error } = await updateProfile({
+      avatar_url: url,
+    });
+
+    if (error) {
+      toast.error(error.message);
+    }
+  };
 
   async function onSubmit(values: ProfileFormValues) {
     setLoading(true);
@@ -59,7 +67,6 @@ export default function ProfilePage() {
       const { error } = await updateProfile({
         full_name: values.fullName,
         phone: values.phone || null,
-        avatar_url: values.avatarUrl || null,
       });
 
       if (error) {
@@ -97,6 +104,9 @@ export default function ProfilePage() {
             <div className="flex items-center gap-4">
               <Link href="/dashboard">
                 <Button variant="ghost">Dashboard</Button>
+              </Link>
+              <Link href="/sessions">
+                <Button variant="ghost">Sessions</Button>
               </Link>
               <Button variant="outline" onClick={handleSignOut}>
                 Sign Out
@@ -168,24 +178,18 @@ export default function ProfilePage() {
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="avatarUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Avatar URL (Optional)</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="https://example.com/avatar.jpg"
-                            type="url"
-                            disabled={loading}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div>
+                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      Profile Picture
+                    </label>
+                    <div className="mt-2">
+                      <AvatarUpload
+                        currentAvatarUrl={profile?.avatar_url}
+                        userName={profile?.full_name || user.email || "User"}
+                        onUploadComplete={handleAvatarUpload}
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex gap-4">
