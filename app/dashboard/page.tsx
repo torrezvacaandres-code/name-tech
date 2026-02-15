@@ -33,6 +33,12 @@ export default function DashboardPage() {
               <Link href="/profile">
                 <Button variant="ghost">Profile</Button>
               </Link>
+              <Link href="/sessions">
+                <Button variant="ghost">Sessions</Button>
+              </Link>
+              <Link href="/settings/security">
+                <Button variant="ghost">Security</Button>
+              </Link>
               <Button variant="outline" onClick={handleSignOut}>
                 Sign Out
               </Button>

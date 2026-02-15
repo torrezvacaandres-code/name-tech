@@ -15,7 +15,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PasswordStrengthIndicator } from "@/components/password-strength-indicator";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const signupSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -32,6 +34,7 @@ type SignupFormValues = z.infer<typeof signupSchema>;
 export function SignupForm() {
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
+  const router = useRouter();
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -60,8 +63,8 @@ export function SignupForm() {
         return;
       }
 
-      toast.success("Account created! Please check your email to confirm.");
-      form.reset();
+      // Redirect to verify email page
+      router.push("/auth/verify-email");
     } catch (_error) {
       toast.error("An unexpected error occurred");
     } finally {
@@ -123,6 +126,7 @@ export function SignupForm() {
                 />
               </FormControl>
               <FormMessage />
+              <PasswordStrengthIndicator password={field.value} />
             </FormItem>
           )}
         />
